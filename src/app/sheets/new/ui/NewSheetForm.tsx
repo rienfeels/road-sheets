@@ -5,35 +5,27 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 type FormDataState = {
+  // Header info
   road_name: string;
   contract_number: string;
   contractor: string;
   workers: string;
   job_time_arrived: string;
   job_time_finished: string;
-  color: "" | "white" | "yellow" | "both";
-  material: string;
   dot_employee: boolean;
   dot_employee_name: string;
-  hand_work: boolean;
-  stop_bars: string;
-  arrows: string;
-  onlys: string;
-  railroad_crossing: string;
-  rpm: string;
-  white_line_type?: "" | "solid" | "skip" | "both";
-  white_solid_footage?: number | string;
-  white_solid_size?: string;
-  white_skip_footage?: number | string;
-  white_skip_size?: string;
-  yellow_line_type?: "" | "solid" | "skip" | "both";
-  yellow_solid_footage?: number | string;
-  yellow_solid_size?: string;
-  yellow_skip_footage?: number | string;
-  yellow_skip_size?: string;
   date_submitted?: string;
-  miles?: number | string;
   notes?: string;
+
+  // Extra header fields (from paper sheet)
+  invoice_number?: string;
+  fed_payroll?: string;
+  job_totals?: string;
+  daily_minimum?: string;
+  location?: string;
+
+  // Dynamic material entries
+  [key: string]: any;
 };
 
 const initialFormData: FormDataState = {
@@ -43,21 +35,15 @@ const initialFormData: FormDataState = {
   workers: "",
   job_time_arrived: "",
   job_time_finished: "",
-  color: "",
-  material: "",
   dot_employee: false,
   dot_employee_name: "",
-  hand_work: false,
-  stop_bars: "",
-  arrows: "",
-  onlys: "",
-  railroad_crossing: "",
-  rpm: "",
-  white_line_type: "",
-  yellow_line_type: "",
   date_submitted: new Date().toISOString().slice(0, 10),
-  miles: "",
   notes: "",
+  invoice_number: "",
+  fed_payroll: "",
+  job_totals: "",
+  daily_minimum: "",
+  location: "",
 };
 
 export default function NewSheetForm() {
@@ -112,299 +98,263 @@ export default function NewSheetForm() {
     }
   }
 
-  const RenderColorSpecificInputs = () => {
-    if (formData.color === "white")
+  // Utility to render rows
+  const renderRows = (prefix: string, items: string[]) =>
+    items.map((label) => {
+      const key = `${prefix}_${label
+        .replace(/[^a-z0-9]+/gi, "_")
+        .toLowerCase()}`;
       return (
-        <>
-          <div className="form-row">
-            <label>White Line Type</label>
-            <select
-              name="white_line_type"
-              value={formData.white_line_type}
+        <tr key={label}>
+          <td>{label}</td>
+          <td align="right">
+            <input
+              type="number"
+              min={0}
+              className="paper-qty"
+              name={key}
+              value={formData[key] || ""}
               onChange={handleChange}
-              className="form-select"
-            >
-              <option value="">Select</option>
-              <option value="solid">Solid</option>
-              <option value="skip">Skip</option>
-              <option value="both">Both</option>
-            </select>
-          </div>
-          {formData.white_line_type === "solid" && (
-            <>
-              <NumRow
-                name="white_solid_footage"
-                label="White Solid Footage"
-                value={formData.white_solid_footage}
-                onChange={handleChange}
-              />
-              <TextRow
-                name="white_solid_size"
-                label="White Solid Size"
-                value={formData.white_solid_size}
-                onChange={handleChange}
-              />
-            </>
-          )}
-          {formData.white_line_type === "skip" && (
-            <>
-              <NumRow
-                name="white_skip_footage"
-                label="White Skip Footage"
-                value={formData.white_skip_footage}
-                onChange={handleChange}
-              />
-              <TextRow
-                name="white_skip_size"
-                label="White Skip Size"
-                value={formData.white_skip_size}
-                onChange={handleChange}
-              />
-            </>
-          )}
-          {formData.white_line_type === "both" && (
-            <>
-              <NumRow
-                name="white_solid_footage"
-                label="White Solid Footage"
-                value={formData.white_solid_footage}
-                onChange={handleChange}
-              />
-              <TextRow
-                name="white_solid_size"
-                label="White Solid Size"
-                value={formData.white_solid_size}
-                onChange={handleChange}
-              />
-              <NumRow
-                name="white_skip_footage"
-                label="White Skip Footage"
-                value={formData.white_skip_footage}
-                onChange={handleChange}
-              />
-              <TextRow
-                name="white_skip_size"
-                label="White Skip Size"
-                value={formData.white_skip_size}
-                onChange={handleChange}
-              />
-            </>
-          )}
-        </>
+            />
+          </td>
+        </tr>
       );
-
-    if (formData.color === "yellow")
-      return (
-        <>
-          <div className="form-row">
-            <label>Yellow Line Type</label>
-            <select
-              name="yellow_line_type"
-              value={formData.yellow_line_type}
-              onChange={handleChange}
-              className="form-select"
-            >
-              <option value="">Select</option>
-              <option value="solid">Solid</option>
-              <option value="skip">Skip</option>
-              <option value="both">Both</option>
-            </select>
-          </div>
-          {formData.yellow_line_type === "solid" && (
-            <>
-              <NumRow
-                name="yellow_solid_footage"
-                label="Yellow Solid Footage"
-                value={formData.yellow_solid_footage}
-                onChange={handleChange}
-              />
-              <TextRow
-                name="yellow_solid_size"
-                label="Yellow Solid Size"
-                value={formData.yellow_solid_size}
-                onChange={handleChange}
-              />
-            </>
-          )}
-          {formData.yellow_line_type === "skip" && (
-            <>
-              <NumRow
-                name="yellow_skip_footage"
-                label="Yellow Skip Footage"
-                value={formData.yellow_skip_footage}
-                onChange={handleChange}
-              />
-              <TextRow
-                name="yellow_skip_size"
-                label="Yellow Skip Size"
-                value={formData.yellow_skip_size}
-                onChange={handleChange}
-              />
-            </>
-          )}
-        </>
-      );
-
-    return null;
-  };
+    });
 
   return (
-    <form onSubmit={handleSubmit} className="form">
-      <div className="form-row">
-        <label>Date Submitted</label>
-        <input
-          type="date"
-          name="date_submitted"
-          value={formData.date_submitted}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="paper">
+      <div className="paper-grid">
+        {/* ---- LEFT COLUMN ---- */}
+        <div className="paper-section">
+          <div className="paper-title"></div>
 
-      <div className="form-row">
-        <label>Road Name</label>
-        <input
-          name="road_name"
-          value={formData.road_name}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+          <div className="form-row">
+            <label>Date</label>
+            <input
+              type="date"
+              name="date_submitted"
+              value={formData.date_submitted}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>Road</label>
+            <input
+              name="road_name"
+              value={formData.road_name}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>Contractor</label>
+            <input
+              name="contractor"
+              value={formData.contractor}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>File #</label>
+            <input
+              name="contract_number"
+              value={formData.contract_number}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>Workers</label>
+            <input
+              name="workers"
+              value={formData.workers}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>Job Time Arrived</label>
+            <input
+              type="time"
+              name="job_time_arrived"
+              value={formData.job_time_arrived}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>Job Time Finished</label>
+            <input
+              type="time"
+              name="job_time_finished"
+              value={formData.job_time_finished}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
 
-      <div className="form-row">
-        <label>Contract #</label>
-        <input
-          name="contract_number"
-          value={formData.contract_number}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+          {/* Paint, RPM, Grinding */}
+          <div className="paper-title">PAINT</div>
+          <table className="paper-table">
+            <tbody>
+              {renderRows("paint", [
+                `4" YEL SLD`,
+                `4" YEL SKIP`,
+                `4" WH SLD`,
+                `4" WH SKIP`,
+                `6" YEL SLD`,
+                `6" YEL SKIP`,
+                `6" WH SLD`,
+                `6" WH SKIP`,
+                `8" WH SLD`,
+                `12" WH SLD`,
+                `24" WH SLD`,
+                `YIELD (12x18)`,
+                `ARROWS`,
+                `COMBO`,
+                `STENCIL`,
+                `Speed Hump`,
+              ])}
+            </tbody>
+          </table>
 
-      <div className="form-row">
-        <label>Contractor</label>
-        <input
-          name="contractor"
-          value={formData.contractor}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+          <div className="paper-title">RPM</div>
+          <table className="paper-table">
+            <tbody>
+              {renderRows("rpm", [
+                "AMBER_1_way",
+                "AMBER_2_way",
+                "CLEAR_1_way",
+                "CLEAR_2_way",
+              ])}
+            </tbody>
+          </table>
 
-      <div className="form-row">
-        <label>Workers</label>
-        <input
-          name="workers"
-          value={formData.workers}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+          <div className="paper-title">GRINDING</div>
+          <table className="paper-table">
+            <tbody>{renderRows("grinding", [`4" WIDE`, `24" WIDE`])}</tbody>
+          </table>
+        </div>
 
-      <div className="form-row">
-        <label>Arrived</label>
-        <input
-          type="time"
-          name="job_time_arrived"
-          value={formData.job_time_arrived}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+        {/* ---- RIGHT COLUMN ---- */}
+        <div className="paper-section">
+          <div className="paper-title"></div>
+          <div className="form-row">
+            <label>DOT Employee</label>
+            <input
+              type="checkbox"
+              name="dot_employee"
+              checked={formData.dot_employee}
+              onChange={handleChange}
+            />
+          </div>
+          {formData.dot_employee && (
+            <div className="form-row">
+              <label>DOT Name/ID</label>
+              <input
+                name="dot_employee_name"
+                value={formData.dot_employee_name}
+                onChange={handleChange}
+                className="form-input"
+              />
+            </div>
+          )}
 
-      <div className="form-row">
-        <label>Finished</label>
-        <input
-          type="time"
-          name="job_time_finished"
-          value={formData.job_time_finished}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+          <div className="form-row">
+            <label>Invoice #</label>
+            <input
+              name="invoice_number"
+              value={formData.invoice_number}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>FED Payroll</label>
+            <input
+              name="fed_payroll"
+              value={formData.fed_payroll}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>Job Totals</label>
+            <input
+              name="job_totals"
+              value={formData.job_totals}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-row">
+            <label>Daily Minimum</label>
+            <input
+              name="daily_minimum"
+              value={formData.daily_minimum}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
 
-      <div className="form-row">
-        <label>Color</label>
-        <select
-          name="color"
-          value={formData.color}
-          onChange={handleChange}
-          className="form-select"
-        >
-          <option value="">Select</option>
-          <option value="white">White</option>
-          <option value="yellow">Yellow</option>
-          <option value="both">Both</option>
-        </select>
-      </div>
+          <div className="form-row">
+            <label>Location</label>
+            <input
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
 
-      {RenderColorSpecificInputs()}
+          <div className="form-row"></div>
+          <div className="form-row"></div>
+          <div className="form-row"></div>
+          <div className="form-row"></div>
+          <div className="form-row"></div>
+          <div className="form-row"></div>
+          <div className="form-row"></div>
+          <div className="form-row"></div>
+          <div className="form-row"></div>
 
-      <div className="form-row">
-        <label>Material</label>
-        <input
-          name="material"
-          value={formData.material}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
+          {/* Thermo, Notes */}
+          <div className="paper-title thermo-block">THERMO</div>
+          <table className="paper-table">
+            <tbody>
+              {renderRows("thermo", [
+                `4" YEL SLD`,
+                `4" YEL SKIP`,
+                `4" WH SLD`,
+                `4" WH SKIP`,
+                `6" YEL SLD`,
+                `6" WH SLD`,
+                `6" WH SKIP`,
+                `8" WH SLD`,
+                `12" WH SLD`,
+                `24" WH SLD`,
+                `YIELD (12x18)`,
+                `ARROW`,
+                `COMBO`,
+                `Speed Hump`,
+              ])}
+            </tbody>
+          </table>
 
-      <div className="form-row">
-        <label>Miles</label>
-        <input
-          type="number"
-          name="miles"
-          value={formData.miles as any}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
-
-      <div className="form-row">
-        <label>Notes</label>
-        <textarea
-          name="notes"
-          rows={4}
-          value={formData.notes}
-          onChange={handleChange}
-          className="form-textarea"
-        />
-      </div>
-
-      <div className="form-row">
-        <label>DOT Employee</label>
-        <input
-          type="checkbox"
-          name="dot_employee"
-          checked={formData.dot_employee}
-          onChange={handleChange}
-        />
-      </div>
-
-      {formData.dot_employee && (
-        <div className="form-row">
-          <label>DOT Name/ID</label>
-          <input
-            name="dot_employee_name"
-            value={formData.dot_employee_name}
+          <div className="paper-title">NOTES</div>
+          <textarea
+            name="notes"
+            rows={6}
+            value={formData.notes}
             onChange={handleChange}
-            className="form-input"
+            className="form-textarea"
           />
         </div>
-      )}
-
-      <div className="form-row">
-        <label>Hand Work</label>
-        <input
-          type="checkbox"
-          name="hand_work"
-          checked={formData.hand_work}
-          onChange={handleChange}
-        />
       </div>
 
-      <div className="form-actions">
+      {/* ---- Actions ---- */}
+      <div className="form-actions" style={{ gridColumn: "span 2" }}>
         <button
           type="submit"
           disabled={isSubmitting}
@@ -415,7 +365,7 @@ export default function NewSheetForm() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="btn btn-outline"
+          className="btn btn-secondary"
         >
           Cancel
         </button>
@@ -423,44 +373,5 @@ export default function NewSheetForm() {
 
       {submissionError && <p className="error-text">{submissionError}</p>}
     </form>
-  );
-}
-
-function TextRow(props: {
-  name: string;
-  label: string;
-  value: any;
-  onChange?: any;
-}) {
-  return (
-    <div className="form-row">
-      <label>{props.label}</label>
-      <input
-        name={props.name}
-        value={props.value || ""}
-        onChange={props.onChange}
-        className="form-input"
-      />
-    </div>
-  );
-}
-
-function NumRow(props: {
-  name: string;
-  label: string;
-  value: any;
-  onChange?: any;
-}) {
-  return (
-    <div className="form-row">
-      <label>{props.label}</label>
-      <input
-        type="number"
-        name={props.name}
-        value={(props.value as any) || ""}
-        onChange={props.onChange}
-        className="form-input"
-      />
-    </div>
   );
 }

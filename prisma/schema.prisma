@@ -97,3 +97,11 @@ model SheetEvent {
   createdAt DateTime @default(now())
 }
 
+model Message {
+  id         String   @id @default(cuid())
+  title      String
+  body       String
+  audience   String   @default("ALL") // "ALL" | "DRIVER" | "ADMIN" (extend later)
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
