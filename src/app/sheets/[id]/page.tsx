@@ -3,6 +3,16 @@ import { getSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { ConfirmDeleteButton } from "./ui/ConfirmDeleteButton";
 
+function formatTime(timeStr?: string) {
+  if (!timeStr) return "-";
+  const [hourStr, minute] = timeStr.split(":");
+  let hour = parseInt(hourStr, 10);
+  if (isNaN(hour)) return timeStr;
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${hour}:${minute} ${ampm}`;
+}
+
 export default async function SheetDetail({
   params,
 }: {
@@ -21,7 +31,6 @@ export default async function SheetDetail({
   const isOwner = sheet.driver?.email === session.user?.email;
   if (!isAdmin && !isOwner) redirect("/sheets");
 
-  // Flatten materials JSON for easy access
   const m = (sheet.materials as any) || {};
 
   return (
@@ -32,10 +41,9 @@ export default async function SheetDetail({
       </h1>
 
       <div className="paper-grid">
-        {/* ---- LEFT COLUMN ---- */}
+        {/* LEFT */}
         <div className="paper-section">
           <div className="paper-title">Job Details</div>
-
           <div className="form-row">
             <label>Date</label>
             <span>{new Date(sheet.date).toLocaleDateString()}</span>
@@ -58,14 +66,14 @@ export default async function SheetDetail({
           </div>
           <div className="form-row">
             <label>Job Time Arrived</label>
-            <span>{m.job_time_arrived || "-"}</span>
+            <span>{formatTime(m.job_time_arrived)}</span>
           </div>
           <div className="form-row">
             <label>Job Time Finished</label>
-            <span>{m.job_time_finished || "-"}</span>
+            <span>{formatTime(m.job_time_finished)}</span>
           </div>
 
-          {/* Paint, RPM, Grinding */}
+          {/* PAINT */}
           <div className="paper-title">PAINT</div>
           <table className="paper-table">
             <tbody>
@@ -84,12 +92,13 @@ export default async function SheetDetail({
                 `YIELD (12x18)`,
                 `ARROWS`,
                 `COMBO`,
-                `STENCIL`,
-                `Speed Hump`,
+                `ONLY`,
+                `RxR`,
               ])}
             </tbody>
           </table>
 
+          {/* RPM */}
           <div className="paper-title">RPM</div>
           <table className="paper-table">
             <tbody>
@@ -102,13 +111,14 @@ export default async function SheetDetail({
             </tbody>
           </table>
 
+          {/* GRINDING */}
           <div className="paper-title">GRINDING</div>
           <table className="paper-table">
             <tbody>{renderRows("grinding", m, [`4" WIDE`, `24" WIDE`])}</tbody>
           </table>
         </div>
 
-        {/* ---- RIGHT COLUMN ---- */}
+        {/* RIGHT */}
         <div className="paper-section">
           <div className="form-row">
             <label>DOT Employee</label>
@@ -150,6 +160,7 @@ export default async function SheetDetail({
           <div className="form-row"></div>
           <div className="form-row"></div>
 
+          {/* THERMO */}
           <div className="paper-title">THERMO</div>
           <table className="paper-table">
             <tbody>
@@ -167,7 +178,8 @@ export default async function SheetDetail({
                 `YIELD (12x18)`,
                 `ARROW`,
                 `COMBO`,
-                `Speed Hump`,
+                `ONLY`,
+                `RxR`,
               ])}
             </tbody>
           </table>
@@ -177,7 +189,6 @@ export default async function SheetDetail({
         </div>
       </div>
 
-      {/* ---- Actions ---- */}
       <div className="form-actions">
         <a href="/sheets" className="btn btn-secondary">
           Back
@@ -188,9 +199,12 @@ export default async function SheetDetail({
         >
           Download
         </a>
+        <a href={`/sheets/${sheet.id}/edit`} className="btn btn-primary">
+          Edit
+        </a>
         {isAdmin && (
           <form action={deleteSheetAction.bind(null, sheet.id)}>
-            <ConfirmDeleteButton confirmText="Delete this sheet? This cannot be undone. You will be returned to all sheets.">
+            <ConfirmDeleteButton confirmText="Delete this sheet?">
               <span className="btn btn-danger">Delete</span>
             </ConfirmDeleteButton>
           </form>
@@ -202,13 +216,9 @@ export default async function SheetDetail({
 
 function renderRows(prefix: string, m: any, items: string[]) {
   return items.map((label) => {
-    // normalize label → key used in DB
     const key = label.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
-
-    // Look inside the nested section (paint, rpm, thermo, etc.)
     const section = m[prefix] || {};
     const value = section[key] ?? "-";
-
     return (
       <tr key={label}>
         <td>{label}</td>
@@ -222,7 +232,6 @@ async function deleteSheetAction(id: string) {
   "use server";
   const session = await getSession();
   if (!session) redirect("/login");
-
   await prisma.sheet.delete({ where: { id } });
   redirect("/sheets");
 }

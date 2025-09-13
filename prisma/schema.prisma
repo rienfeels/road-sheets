@@ -34,6 +34,8 @@ model User {
   events    SheetEvent[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+  MessageRead MessageRead[]
 }
 
 model Location {
@@ -98,10 +100,23 @@ model SheetEvent {
 }
 
 model Message {
-  id         String   @id @default(cuid())
-  title      String
-  body       String
-  audience   String   @default("ALL") // "ALL" | "DRIVER" | "ADMIN" (extend later)
-  published  Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  id        String      @id @default(cuid())
+  title     String
+  body      String
+  audience  String      @default("ALL") // or use enum
+  published Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  reads     MessageRead[]
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  userId    String
+  messageId String
+  readAt    DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  message Message @relation(fields: [messageId], references: [id])
+
+  @@unique([userId, messageId])
 }

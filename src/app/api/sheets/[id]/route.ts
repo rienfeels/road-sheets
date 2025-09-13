@@ -67,7 +67,10 @@ function normalizeMaterials(body: any) {
   };
 }
 
-export async function POST(req: NextRequest) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -82,25 +85,36 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const safeDate = body.date_submitted
-      ? new Date(body.date_submitted)
-      : new Date();
 
-    const sheet = await prisma.sheet.create({
+    const sheet = await prisma.sheet.findUnique({
+      where: { id: params.id },
+    });
+    if (!sheet) {
+      return NextResponse.json({ error: "Sheet not found" }, { status: 404 });
+    }
+
+    // normalize before merge
+    const updatedMaterials = normalizeMaterials(body);
+    const mergedMaterials = {
+      ...(sheet.materials as any),
+      ...updatedMaterials,
+    };
+
+    const updated = await prisma.sheet.update({
+      where: { id: params.id },
       data: {
-        date: safeDate,
-        driverId: me.id,
-        notes: body.notes ?? "",
-        materials: normalizeMaterials(body),
-        status: "SUBMITTED",
+        date: body.date_submitted ? new Date(body.date_submitted) : sheet.date,
+        notes: body.notes ?? sheet.notes,
+        miles: body.miles ?? sheet.miles,
+        materials: mergedMaterials,
       },
     });
 
-    return NextResponse.json({ id: sheet.id }, { status: 201 });
+    return NextResponse.json({ id: updated.id }, { status: 200 });
   } catch (err: any) {
-    console.error("Create sheet failed:", err);
+    console.error("Update sheet failed:", err);
     return NextResponse.json(
-      { error: err.message || "Failed to create sheet" },
+      { error: err.message || "Failed to update sheet" },
       { status: 500 }
     );
   }

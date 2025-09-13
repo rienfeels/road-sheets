@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
+function formatTime(timeStr?: string) {
+  if (!timeStr) return "-";
+  const [hourStr, minute] = timeStr.split(":");
+  let hour = parseInt(hourStr, 10);
+  if (isNaN(hour)) return timeStr;
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${hour}:${minute} ${ampm}`;
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: { id: string } }
@@ -14,7 +24,7 @@ export async function GET(
 
   const m = (sheet.materials as any) || {};
   const pdf = await PDFDocument.create();
-  const page = pdf.addPage([612, 792]); // Letter size
+  const page = pdf.addPage([612, 792]);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
 
   const drawText = (text: string, x: number, y: number, size = 9) => {
@@ -27,7 +37,6 @@ export async function GET(
     });
   };
 
-  // Draw section with borders
   const drawSection = (
     title: string,
     rows: [string, any][],
@@ -39,7 +48,6 @@ export async function GET(
     const headerHeight = 18;
     const boxHeight = rows.length * rowHeight + headerHeight;
 
-    // Outer box
     page.drawRectangle({
       x,
       y: startY - boxHeight,
@@ -49,7 +57,6 @@ export async function GET(
       borderWidth: 1,
     });
 
-    // Header bar
     page.drawRectangle({
       x,
       y: startY - headerHeight,
@@ -63,7 +70,6 @@ export async function GET(
 
     let y = startY - headerHeight;
     for (const [label, value] of rows) {
-      // Row line
       page.drawLine({
         start: { x, y },
         end: { x: x + width, y },
@@ -78,13 +84,59 @@ export async function GET(
     return startY - boxHeight - 20;
   };
 
-  // Layout: two columns like the paper sheet
+  const paintOrder = [
+    `4" YEL SLD`,
+    `4" YEL SKIP`,
+    `4" WH SLD`,
+    `4" WH SKIP`,
+    `6" YEL SLD`,
+    `6" YEL SKIP`,
+    `6" WH SLD`,
+    `6" WH SKIP`,
+    `8" WH SLD`,
+    `12" WH SLD`,
+    `24" WH SLD`,
+    `YIELD (12x18)`,
+    `ARROWS`,
+    `COMBO`,
+    `ONLY`,
+    `RxR`,
+  ];
+
+  const rpmOrder = ["AMBER 1 way", "AMBER 2 way", "CLEAR 1 way", "CLEAR 2 way"];
+
+  const grindingOrder = [`4" WIDE`, `24" WIDE`];
+
+  const thermoOrder = [
+    `4" YEL SLD`,
+    `4" YEL SKIP`,
+    `4" WH SLD`,
+    `4" WH SKIP`,
+    `6" YEL SLD`,
+    `6" WH SLD`,
+    `6" WH SKIP`,
+    `8" WH SLD`,
+    `12" WH SLD`,
+    `24" WH SLD`,
+    `YIELD (12x18)`,
+    `ARROW`,
+    `COMBO`,
+    `ONLY`,
+    `RxR`,
+  ];
+
+  const getRows = (prefix: string, items: string[]) =>
+    items.map((label) => {
+      const key = label.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
+      const section = m[prefix] || {};
+      return [label, section[key] ?? 0] as [string, any];
+    });
+
   let leftY = 740;
   let rightY = 740;
   const leftX = 40;
   const rightX = 320;
 
-  // LEFT COLUMN
   leftY = drawSection(
     "Job Details",
     [
@@ -93,35 +145,22 @@ export async function GET(
       ["Contractor", m.contractor],
       ["File #", m.contract_number],
       ["Workers", m.workers],
-      ["Arrived", m.job_time_arrived],
-      ["Finished", m.job_time_finished],
+      ["Arrived", formatTime(m.job_time_arrived)],
+      ["Finished", formatTime(m.job_time_finished)],
     ],
     leftX,
     leftY
   );
 
-  leftY = drawSection(
-    "PAINT",
-    Object.entries(m.paint || {}).map(([k, v]) => [k.replace(/_/g, " "), v]),
-    leftX,
-    leftY
-  );
-
-  leftY = drawSection(
-    "RPM",
-    Object.entries(m.rpm || {}).map(([k, v]) => [k.replace(/_/g, " "), v]),
-    leftX,
-    leftY
-  );
-
+  leftY = drawSection("PAINT", getRows("paint", paintOrder), leftX, leftY);
+  leftY = drawSection("RPM", getRows("rpm", rpmOrder), leftX, leftY);
   leftY = drawSection(
     "GRINDING",
-    Object.entries(m.grinding || {}).map(([k, v]) => [k.replace(/_/g, " "), v]),
+    getRows("grinding", grindingOrder),
     leftX,
     leftY
   );
 
-  // RIGHT COLUMN
   rightY = drawSection(
     "Admin / Totals",
     [
@@ -139,11 +178,10 @@ export async function GET(
 
   rightY = drawSection(
     "THERMO",
-    Object.entries(m.thermo || {}).map(([k, v]) => [k.replace(/_/g, " "), v]),
+    getRows("thermo", thermoOrder),
     rightX,
     rightY
   );
-
   rightY = drawSection("NOTES", [["Notes", sheet.notes]], rightX, rightY);
 
   const bytes = await pdf.save();

@@ -140,3 +140,15 @@ body {
 .btn-secondary:hover {
   background: #e5e7eb;
 }
+
+/* === RESPONSIVE GRID FIX === */
+@media (max-width: 768px) {
+  .paper-grid {
+    grid-template-columns: 1fr; /* stack left + right vertically */
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

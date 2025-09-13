@@ -34,6 +34,21 @@ export default async function Home() {
             Welcome {session.user?.name} {role ? `• ${role}` : ""}
           </div>
         </div>
+        <Link
+          href="/messages"
+          style={{
+            background: "#2563eb",
+            color: "white",
+            padding: "0.5rem 1rem",
+            borderRadius: 6,
+            fontWeight: 500,
+            textDecoration: "none",
+            marginLeft: "0.5rem",
+          }}
+        >
+          Messages
+        </Link>
+
         <SignOutButton />
       </div>
 

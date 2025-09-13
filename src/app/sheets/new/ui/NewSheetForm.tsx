@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ type FormDataState = {
   date_submitted?: string;
   notes?: string;
 
-  // Extra header fields (from paper sheet)
+  // Extra header fields
   invoice_number?: string;
   fed_payroll?: string;
   job_totals?: string;
@@ -46,11 +46,46 @@ const initialFormData: FormDataState = {
   location: "",
 };
 
-export default function NewSheetForm() {
+export default function NewSheetForm({
+  sheetId,
+  initialData,
+}: {
+  sheetId?: string;
+  initialData?: any;
+}) {
   const router = useRouter();
   const [formData, setFormData] = useState<FormDataState>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  // Load initial data in edit mode
+  useEffect(() => {
+    if (initialData) {
+      const flat: any = {};
+
+      const flattenSection = (prefix: string, section: Record<string, any>) => {
+        for (const [k, v] of Object.entries(section || {})) {
+          flat[`${prefix}_${k}`] = v;
+        }
+      };
+
+      // Flatten each section
+      flattenSection("paint", initialData.materials.paint);
+      flattenSection("thermo", initialData.materials.thermo);
+      flattenSection("rpm", initialData.materials.rpm);
+      flattenSection("grinding", initialData.materials.grinding);
+
+      setFormData({
+        ...initialFormData,
+        ...initialData.materials,
+        ...flat, // <- ensures inputs like paint_only are populated
+        date_submitted: initialData.date
+          ? new Date(initialData.date).toISOString().slice(0, 10)
+          : initialFormData.date_submitted,
+        notes: initialData.notes || "",
+      });
+    }
+  }, [initialData]);
 
   function handleChange(
     e: React.ChangeEvent<
@@ -70,8 +105,11 @@ export default function NewSheetForm() {
     setSubmissionError(null);
 
     try {
-      const res = await fetch("/api/sheets", {
-        method: "POST",
+      const url = sheetId ? `/api/sheets/${sheetId}` : "/api/sheets";
+      const method = sheetId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
@@ -84,15 +122,15 @@ export default function NewSheetForm() {
 
       if (!res.ok) {
         throw new Error(
-          data.error || `Failed to create sheet (HTTP ${res.status})`
+          data.error || `Failed to ${sheetId ? "update" : "create"} sheet`
         );
       }
 
-      toast.success("Sheet submitted");
-      router.push(data.id ? `/sheets/${data.id}` : "/sheets");
+      toast.success(sheetId ? "Sheet updated" : "Sheet submitted");
+      router.push(`/sheets/${sheetId || data.id}`);
     } catch (err: any) {
       setSubmissionError(err.message || "Unknown error");
-      toast.error("Submission failed");
+      toast.error("Save failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -214,8 +252,8 @@ export default function NewSheetForm() {
                 `YIELD (12x18)`,
                 `ARROWS`,
                 `COMBO`,
-                `STENCIL`,
-                `Speed Hump`,
+                `ONLY`,
+                `RxR`,
               ])}
             </tbody>
           </table>
@@ -317,7 +355,6 @@ export default function NewSheetForm() {
           <div className="form-row"></div>
           <div className="form-row"></div>
           <div className="form-row"></div>
-          <div className="form-row"></div>
 
           {/* Thermo, Notes */}
           <div className="paper-title thermo-block">THERMO</div>
@@ -337,7 +374,8 @@ export default function NewSheetForm() {
                 `YIELD (12x18)`,
                 `ARROW`,
                 `COMBO`,
-                `Speed Hump`,
+                `ONLY`,
+                `RxR`,
               ])}
             </tbody>
           </table>
@@ -360,7 +398,13 @@ export default function NewSheetForm() {
           disabled={isSubmitting}
           className="btn btn-primary"
         >
-          {isSubmitting ? "Submitting..." : "Submit"}
+          {isSubmitting
+            ? sheetId
+              ? "Updating..."
+              : "Submitting..."
+            : sheetId
+            ? "Update"
+            : "Submit"}
         </button>
         <button
           type="button"
