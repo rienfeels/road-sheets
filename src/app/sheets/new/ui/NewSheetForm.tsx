@@ -289,15 +289,27 @@ export default function NewSheetForm({
             />
           </div>
           {formData.dot_employee && (
-            <div className="form-row">
-              <label>DOT Name/ID</label>
-              <input
-                name="dot_employee_name"
-                value={formData.dot_employee_name}
-                onChange={handleChange}
-                className="form-input"
-              />
-            </div>
+            <>
+              <div className="form-row">
+                <label>DOT Name/ID</label>
+                <input
+                  name="dot_employee_name"
+                  value={formData.dot_employee_name}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+              <div className="form-row">
+                <label>DOT Email</label>
+                <input
+                  type="email"
+                  name="dot_employee_email"
+                  value={formData.dot_employee_email || ""}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+            </>
           )}
 
           <div className="form-row">

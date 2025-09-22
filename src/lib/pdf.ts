@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+// lib/pdf.ts
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 function formatTime(timeStr?: string) {
@@ -12,16 +11,7 @@ function formatTime(timeStr?: string) {
   return `${hour}:${minute} ${ampm}`;
 }
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  const sheet = await prisma.sheet.findUnique({
-    where: { id: params.id },
-    include: { driver: true, job: true },
-  });
-  if (!sheet) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
+export async function generateSheetPDF(sheet: any) {
   const m = (sheet.materials as any) || {};
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([612, 792]);
@@ -104,9 +94,7 @@ export async function GET(
   ];
 
   const rpmOrder = ["AMBER 1 way", "AMBER 2 way", "CLEAR 1 way", "CLEAR 2 way"];
-
   const grindingOrder = [`4" WIDE`, `24" WIDE`];
-
   const thermoOrder = [
     `4" YEL SLD`,
     `4" YEL SKIP`,
@@ -185,11 +173,5 @@ export async function GET(
   );
   rightY = drawSection("NOTES", [["Notes", sheet.notes]], rightX, rightY);
 
-  const bytes = await pdf.save();
-  return new NextResponse(bytes, {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="sheet-${sheet.id}.pdf"`,
-    },
-  });
+  return await pdf.save();
 }

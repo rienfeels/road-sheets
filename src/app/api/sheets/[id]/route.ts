@@ -11,6 +11,7 @@ function normalizeMaterials(body: any) {
     workers: body.workers ?? "",
     dot_employee: !!body.dot_employee,
     dot_employee_name: body.dot_employee_name ?? "",
+    dot_employee_email: body.dot_employee_email ?? "",
     invoice_number: body.invoice_number ?? "",
     fed_payroll: body.fed_payroll ?? "",
     job_totals: body.job_totals ?? "",

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { ConfirmDeleteButton } from "./ui/ConfirmDeleteButton";
+import ConfirmSendButton from "@/components/ConfirmSendButton";
 
 function formatTime(timeStr?: string) {
   if (!timeStr) return "-";
@@ -130,7 +131,12 @@ export default async function SheetDetail({
               <span>{m.dot_employee_name}</span>
             </div>
           )}
-
+          {m.dot_employee_email && (
+            <div className="form-row">
+              <label>DOT Email</label>
+              <span>{m.dot_employee_email}</span>
+            </div>
+          )}
           <div className="form-row">
             <label>Invoice #</label>
             <span>{m.invoice_number || "-"}</span>
@@ -202,6 +208,7 @@ export default async function SheetDetail({
         <a href={`/sheets/${sheet.id}/edit`} className="btn btn-primary">
           Edit
         </a>
+        <ConfirmSendButton sheetId={sheet.id} />
         {isAdmin && (
           <form action={deleteSheetAction.bind(null, sheet.id)}>
             <ConfirmDeleteButton confirmText="Delete this sheet?">
