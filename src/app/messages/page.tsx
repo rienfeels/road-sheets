@@ -1,7 +1,7 @@
 // src/app/messages/page.tsx
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 export default async function MessagesPage() {
@@ -10,48 +10,31 @@ export default async function MessagesPage() {
 
   const isAdmin = (session.user as any)?.role === "ADMIN";
 
-  // safer baseUrl logic
-  const vercelUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : null;
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL || vercelUrl || "http://localhost:3000";
+  // Get user
+  if (!session?.user?.email) redirect("/login");
 
-  const hdrs = headers();
-  const res = await fetch(`${baseUrl}/api/messages`, {
-    cache: "no-store",
-    headers: {
-      cookie: hdrs.get("cookie") ?? "",
+  const me = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { MessageRead: true },
+  });
+  if (!me) return <p>No user found</p>;
+
+  const readIds = me.MessageRead.map((r) => r.messageId);
+
+  // Get messages for this user’s role
+  const msgs = await prisma.message.findMany({
+    where: {
+      published: true,
+      OR: [{ audience: "ALL" }, { audience: me.role }],
     },
+    orderBy: { createdAt: "desc" },
   });
 
-  if (!res.ok) {
-    return (
-      <main className="page-wrapper">
-        <div className="page-header">
-          <h1 className="page-title">Messages</h1>
-          {isAdmin && (
-            <a
-              href="/admin/messages"
-              style={{
-                background: "#2563eb",
-                color: "white",
-                padding: "0.5rem 1rem",
-                borderRadius: "6px",
-                fontWeight: 500,
-                textDecoration: "none",
-              }}
-            >
-              + New Message
-            </a>
-          )}
-        </div>
-        <p>⚠️ Failed to load messages.</p>
-      </main>
-    );
-  }
-
-  const msgs = await res.json();
+  // Add read flag
+  const withFlags = msgs.map((m) => ({
+    ...m,
+    read: readIds.includes(m.id),
+  }));
 
   return (
     <main className="page-wrapper">
@@ -83,11 +66,11 @@ export default async function MessagesPage() {
         )}
       </div>
 
-      {!msgs || msgs.length === 0 ? (
+      {withFlags.length === 0 ? (
         <p>No messages yet.</p>
       ) : (
         <ul>
-          {msgs.map((m: any) => (
+          {withFlags.map((m) => (
             <li
               key={m.id}
               style={{
