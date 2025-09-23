@@ -187,10 +187,10 @@ export async function GET(
 
   const bytes = await pdf.save();
 
-  // Wrap bytes in a Blob so NextResponse sees a valid BodyInit
-  const blob = new Blob([bytes], { type: "application/pdf" });
+  //  Use Node Buffer instead of Blob
+  const buffer = Buffer.from(bytes);
 
-  return new NextResponse(blob, {
+  return new NextResponse(buffer, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="sheet-${sheet.id}.pdf"`,
