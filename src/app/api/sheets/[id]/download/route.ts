@@ -186,7 +186,11 @@ export async function GET(
   rightY = drawSection("NOTES", [["Notes", sheet.notes]], rightX, rightY);
 
   const bytes = await pdf.save();
-  return new NextResponse(bytes, {
+
+  // Wrap bytes in a Blob so NextResponse sees a valid BodyInit
+  const blob = new Blob([bytes], { type: "application/pdf" });
+
+  return new NextResponse(blob, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="sheet-${sheet.id}.pdf"`,
