@@ -10,10 +10,12 @@ export default async function MessagesPage() {
 
   const isAdmin = (session.user as any)?.role === "ADMIN";
 
+  // safer baseUrl logic
+  const vercelUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : null;
   const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    process.env.NEXT_PUBLIC_BASE_URL || vercelUrl || "http://localhost:3000";
 
   const hdrs = headers();
   const res = await fetch(`${baseUrl}/api/messages`, {
@@ -44,7 +46,7 @@ export default async function MessagesPage() {
             </a>
           )}
         </div>
-        <p>Failed to load messages.</p>
+        <p>⚠️ Failed to load messages.</p>
       </main>
     );
   }
@@ -127,7 +129,6 @@ export default async function MessagesPage() {
                     {m.read ? "Read" : "Unread"}
                   </span>
                 </div>
-                {/* keep formatting of message body */}
                 <p
                   style={{
                     marginTop: 6,
