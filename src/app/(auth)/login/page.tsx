@@ -5,8 +5,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("admin@example.com");
-  const [password, setPassword] = useState("admin123!");
+  const [email, setEmail] = useState(""); // start empty
+  const [password, setPassword] = useState(""); // start empty
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -56,10 +56,6 @@ export default function LoginPage() {
         <button className="btn-primary" type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </button>
-
-        <p className="auth-hint">
-          Try <b>admin@example.com</b> / <b>admin123!</b> (from seed)
-        </p>
       </form>
     </div>
   );
