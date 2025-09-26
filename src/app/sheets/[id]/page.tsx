@@ -229,17 +229,24 @@ function renderRows(prefix: string, m: any, items: string[]) {
   return items.map((label) => {
     const key = label.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
     const section = m[prefix] || {};
+
+    // check nested first (preferred)
     let value = section[key];
 
-    // fallback: check if it's stored flat (paint_yield_24x36)
+    // fallback: check flattened form (paint_yield_24x36)
     if (value === undefined) {
       value = m[`${prefix}_${key}`];
+    }
+
+    // explicitly normalize to show 0 instead of "-"
+    if (value === undefined || value === null) {
+      value = "-";
     }
 
     return (
       <tr key={label}>
         <td>{label}</td>
-        <td align="right">{value ?? "-"}</td>
+        <td align="right">{value}</td>
       </tr>
     );
   });
