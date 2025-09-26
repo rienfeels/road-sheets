@@ -229,11 +229,17 @@ function renderRows(prefix: string, m: any, items: string[]) {
   return items.map((label) => {
     const key = label.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
     const section = m[prefix] || {};
-    const value = section[key] ?? "-";
+    let value = section[key];
+
+    // fallback: check if it's stored flat (paint_yield_24x36)
+    if (value === undefined) {
+      value = m[`${prefix}_${key}`];
+    }
+
     return (
       <tr key={label}>
         <td>{label}</td>
-        <td align="right">{value}</td>
+        <td align="right">{value ?? "-"}</td>
       </tr>
     );
   });
