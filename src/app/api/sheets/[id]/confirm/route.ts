@@ -8,6 +8,13 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function labelToKey(label: string) {
+  return label
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+}
+
 function formatTime(timeStr?: string) {
   if (!timeStr) return "-";
   const [hourStr, minute] = timeStr.split(":");
@@ -156,9 +163,16 @@ export async function POST(
 
     const getRows = (prefix: string, items: string[]) =>
       items.map((label) => {
-        const key = label.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
+        const base = labelToKey(label); // e.g. "yield_24x36"
+        const alt = `${base}_`; // legacy: "yield_24x36_"
         const section = m[prefix] || {};
-        return [label, section[key] ?? 0] as [string, any];
+        const value =
+          section[base] ??
+          section[alt] ??
+          m[`${prefix}_${base}`] ??
+          m[`${prefix}_${alt}`] ??
+          0;
+        return [label, value] as [string, any];
       });
 
     let leftY = 700;

@@ -4,6 +4,13 @@ import { redirect, notFound } from "next/navigation";
 import { ConfirmDeleteButton } from "./ui/ConfirmDeleteButton";
 import ConfirmSendButton from "@/components/ConfirmSendButton";
 
+function labelToKey(label: string) {
+  return label
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+}
+
 function formatTime(timeStr?: string) {
   if (!timeStr) return "-";
   const [hourStr, minute] = timeStr.split(":");
@@ -227,26 +234,21 @@ export default async function SheetDetail({
 
 function renderRows(prefix: string, m: any, items: string[]) {
   return items.map((label) => {
-    const key = label.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
+    const base = labelToKey(label); // e.g. "yield_24x36"
+    const alt = `${base}_`; // legacy accidental key: "yield_24x36_"
     const section = m[prefix] || {};
 
-    // check nested first (preferred)
-    let value = section[key];
-
-    // fallback: check flattened form (paint_yield_24x36)
-    if (value === undefined) {
-      value = m[`${prefix}_${key}`];
-    }
-
-    // explicitly normalize to show 0 instead of "-"
-    if (value === undefined || value === null) {
-      value = "-";
-    }
+    // Prefer nested (correct) → then legacy nested → then flat (correct) → then flat (legacy)
+    let value =
+      section[base] ??
+      section[alt] ??
+      m[`${prefix}_${base}`] ??
+      m[`${prefix}_${alt}`];
 
     return (
       <tr key={label}>
         <td>{label}</td>
-        <td align="right">{value}</td>
+        <td align="right">{value ?? "-"}</td>
       </tr>
     );
   });

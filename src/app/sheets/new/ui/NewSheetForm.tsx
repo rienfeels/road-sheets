@@ -4,6 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+function labelToKey(label: string) {
+  return label
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_+|_+$/g, "") // trim leading/trailing underscores
+    .toLowerCase();
+}
+
 type FormDataState = {
   // Header info
   road_name: string;
@@ -139,9 +146,7 @@ export default function NewSheetForm({
   // Utility to render rows
   const renderRows = (prefix: string, items: string[]) =>
     items.map((label) => {
-      const key = `${prefix}_${label
-        .replace(/[^a-z0-9]+/gi, "_")
-        .toLowerCase()}`;
+      const key = `${prefix}_${labelToKey(label)}`;
       return (
         <tr key={label}>
           <td>{label}</td>
