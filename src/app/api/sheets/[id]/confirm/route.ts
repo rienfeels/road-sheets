@@ -161,27 +161,28 @@ export async function POST(
         return [label, section[key] ?? 0] as [string, any];
       });
 
-    let leftY = 740;
-    let rightY = 740;
+    let leftY = 700;
+    let rightY = 700;
     const leftX = 40;
     const rightX = 320;
 
+    // Header
     page.drawText("Fields Specialty Contractors", {
-      x: 40,
-      y: 770,
+      x: 200,
+      y: 780,
       size: 14,
       font,
     });
     page.drawText("Email: fieldsspecialty@gmail.com", {
-      x: 40,
-      y: 750,
+      x: 200,
+      y: 765,
       size: 10,
       font,
     });
-    page.drawText("Office: (864) 876-3377", { x: 40, y: 735, size: 10, font });
+    page.drawText("Office: (864) 876-3377", { x: 200, y: 750, size: 10, font });
     page.drawText("Darrell Fields: (864) 303-3275", {
-      x: 40,
-      y: 720,
+      x: 200,
+      y: 735,
       size: 10,
       font,
     });
