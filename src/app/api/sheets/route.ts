@@ -32,7 +32,8 @@ function normalizeMaterials(body: any) {
       "8_wh_sld": Number(body.paint_8_wh_sld || 0),
       "12_wh_sld": Number(body.paint_12_wh_sld || 0),
       "24_wh_sld": Number(body.paint_24_wh_sld || 0),
-      yield: Number(body.paint_yield || 0),
+      yield_12x18: Number(body.paint_yield_12x18 || 0),
+      yield_24x36: Number(body.paint_yield_24x36 || 0),
       arrows: Number(body.paint_arrows || 0),
       combo: Number(body.paint_combo || 0),
       only: Number(body.paint_only || 0),
@@ -47,6 +48,7 @@ function normalizeMaterials(body: any) {
     grinding: {
       "4_wide": Number(body.grinding_4_wide || 0),
       "24_wide": Number(body.grinding_24_wide || 0),
+      arrows: Number(body.grinding_arrows || 0),
     },
     thermo: {
       "4_yel_sld": Number(body.thermo_4_yel_sld || 0),
@@ -59,7 +61,8 @@ function normalizeMaterials(body: any) {
       "8_wh_sld": Number(body.thermo_8_wh_sld || 0),
       "12_wh_sld": Number(body.thermo_12_wh_sld || 0),
       "24_wh_sld": Number(body.thermo_24_wh_sld || 0),
-      yield: Number(body.thermo_yield || 0),
+      yield_12x18: Number(body.thermo_yield_12x18 || 0),
+      yield_24x36: Number(body.thermo_yield_24x36 || 0),
       arrow: Number(body.thermo_arrow || 0),
       combo: Number(body.thermo_combo || 0),
       only: Number(body.thermo_only || 0),

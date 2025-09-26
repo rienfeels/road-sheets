@@ -97,6 +97,7 @@ export async function GET(
     `12" WH SLD`,
     `24" WH SLD`,
     `YIELD (12x18)`,
+    `YIELD (24x36)`,
     `ARROWS`,
     `COMBO`,
     `ONLY`,
@@ -105,7 +106,7 @@ export async function GET(
 
   const rpmOrder = ["AMBER 1 way", "AMBER 2 way", "CLEAR 1 way", "CLEAR 2 way"];
 
-  const grindingOrder = [`4" WIDE`, `24" WIDE`];
+  const grindingOrder = [`4" WIDE`, `24" WIDE`, `ARROWS`];
 
   const thermoOrder = [
     `4" YEL SLD`,
@@ -119,6 +120,7 @@ export async function GET(
     `12" WH SLD`,
     `24" WH SLD`,
     `YIELD (12x18)`,
+    `YIELD (24x36)`,
     `ARROW`,
     `COMBO`,
     `ONLY`,
@@ -136,6 +138,26 @@ export async function GET(
   let rightY = 740;
   const leftX = 40;
   const rightX = 320;
+
+  page.drawText("Fields Specialty Contractors", {
+    x: 40,
+    y: 770,
+    size: 14,
+    font,
+  });
+  page.drawText("Email: fieldsspecialty@gmail.com", {
+    x: 40,
+    y: 750,
+    size: 10,
+    font,
+  });
+  page.drawText("Office: (864) 876-3377", { x: 40, y: 735, size: 10, font });
+  page.drawText("Darrell Fields: (864) 303-3275", {
+    x: 40,
+    y: 720,
+    size: 10,
+    font,
+  });
 
   leftY = drawSection(
     "Job Details",

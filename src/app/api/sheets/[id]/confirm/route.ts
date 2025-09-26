@@ -40,7 +40,10 @@ export async function POST(
     const m = (sheet.materials as any) || {};
     const dotEmail = m.dot_employee_email;
     if (!dotEmail) {
-      return NextResponse.json({ error: "No DOT email provided" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No DOT email provided" },
+        { status: 400 }
+      );
     }
 
     // === build PDF (same as download route) ===
@@ -118,14 +121,20 @@ export async function POST(
       `12" WH SLD`,
       `24" WH SLD`,
       `YIELD (12x18)`,
+      `YIELD (24x36)`,
       `ARROWS`,
       `COMBO`,
       `ONLY`,
       `RxR`,
     ];
 
-    const rpmOrder = ["AMBER 1 way", "AMBER 2 way", "CLEAR 1 way", "CLEAR 2 way"];
-    const grindingOrder = [`4" WIDE`, `24" WIDE`];
+    const rpmOrder = [
+      "AMBER 1 way",
+      "AMBER 2 way",
+      "CLEAR 1 way",
+      "CLEAR 2 way",
+    ];
+    const grindingOrder = [`4" WIDE`, `24" WIDE`, `ARROWS`];
     const thermoOrder = [
       `4" YEL SLD`,
       `4" YEL SKIP`,
@@ -138,6 +147,7 @@ export async function POST(
       `12" WH SLD`,
       `24" WH SLD`,
       `YIELD (12x18)`,
+      `YIELD (24x36)`,
       `ARROW`,
       `COMBO`,
       `ONLY`,
@@ -156,6 +166,26 @@ export async function POST(
     const leftX = 40;
     const rightX = 320;
 
+    page.drawText("Fields Specialty Contractors", {
+      x: 40,
+      y: 770,
+      size: 14,
+      font,
+    });
+    page.drawText("Email: fieldsspecialty@gmail.com", {
+      x: 40,
+      y: 750,
+      size: 10,
+      font,
+    });
+    page.drawText("Office: (864) 876-3377", { x: 40, y: 735, size: 10, font });
+    page.drawText("Darrell Fields: (864) 303-3275", {
+      x: 40,
+      y: 720,
+      size: 10,
+      font,
+    });
+
     leftY = drawSection(
       "Job Details",
       [
@@ -173,7 +203,12 @@ export async function POST(
 
     leftY = drawSection("PAINT", getRows("paint", paintOrder), leftX, leftY);
     leftY = drawSection("RPM", getRows("rpm", rpmOrder), leftX, leftY);
-    leftY = drawSection("GRINDING", getRows("grinding", grindingOrder), leftX, leftY);
+    leftY = drawSection(
+      "GRINDING",
+      getRows("grinding", grindingOrder),
+      leftX,
+      leftY
+    );
 
     rightY = drawSection(
       "Admin / Totals",
@@ -191,7 +226,12 @@ export async function POST(
       rightY
     );
 
-    rightY = drawSection("THERMO", getRows("thermo", thermoOrder), rightX, rightY);
+    rightY = drawSection(
+      "THERMO",
+      getRows("thermo", thermoOrder),
+      rightX,
+      rightY
+    );
     rightY = drawSection("NOTES", [["Notes", sheet.notes]], rightX, rightY);
 
     const pdfBytes = await pdf.save();
@@ -200,7 +240,9 @@ export async function POST(
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to: dotEmail,
-      subject: `Road Sheet Confirmation: ${m.road_name || sheet.job?.name || sheet.id}`,
+      subject: `Road Sheet Confirmation: ${
+        m.road_name || sheet.job?.name || sheet.id
+      }`,
       text: "Attached is the confirmed road sheet PDF.",
       attachments: [
         {
@@ -213,6 +255,9 @@ export async function POST(
     return NextResponse.json({ ok: true });
   } catch (err: any) {
     console.error("Confirm send failed:", err);
-    return NextResponse.json({ error: err.message || "Failed to confirm/send" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Failed to confirm/send" },
+      { status: 500 }
+    );
   }
 }

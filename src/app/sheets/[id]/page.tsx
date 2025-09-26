@@ -91,6 +91,7 @@ export default async function SheetDetail({
                 `12" WH SLD`,
                 `24" WH SLD`,
                 `YIELD (12x18)`,
+                `YIELD (24x36)`,
                 `ARROWS`,
                 `COMBO`,
                 `ONLY`,
@@ -115,7 +116,9 @@ export default async function SheetDetail({
           {/* GRINDING */}
           <div className="paper-title">GRINDING</div>
           <table className="paper-table">
-            <tbody>{renderRows("grinding", m, [`4" WIDE`, `24" WIDE`])}</tbody>
+            <tbody>
+              {renderRows("grinding", m, [`4" WIDE`, `24" WIDE`, `ARROWS`])}
+            </tbody>
           </table>
         </div>
 
@@ -182,6 +185,7 @@ export default async function SheetDetail({
                 `12" WH SLD`,
                 `24" WH SLD`,
                 `YIELD (12x18)`,
+                `YIELD (24x36)`,
                 `ARROW`,
                 `COMBO`,
                 `ONLY`,
